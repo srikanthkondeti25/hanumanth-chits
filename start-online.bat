@@ -16,7 +16,7 @@ start Next.js Web App cmd /c npm run dev -- -p 3001
 timeout /t 5 >nul
 
 echo [3/3] Starting Secure Online Cloudflare Tunnel...
-start Cloudflare Live Tunnel cmd /k ..\cloudflared.exe tunnel --url http://localhost:3001
+start "Cloudflare Live Tunnel" cmd /k "..\cloudflared.exe tunnel --url http://127.0.0.1:3001"
 
 echo.
 echo ========================================================
