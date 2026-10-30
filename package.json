@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "gateway": "node scripts/whatsapp-gateway.mjs",
-    "build": "next build",
+    "postinstall": "prisma generate",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
