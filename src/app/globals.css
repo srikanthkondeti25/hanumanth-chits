@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafaf9;
+  --foreground: #1c1917;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Elder-friendly: bigger inputs, buttons */
+input, select, textarea {
+  font-size: 18px !important;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Print Styles */
+@media print {
+  .no-print { display: none !important; }
+}

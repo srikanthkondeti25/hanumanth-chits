@@ -1,0 +1,133 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model ChitMember {
+  id              String   @id @default(cuid())
+  name            String
+  surname         String
+  phone           String
+  village         String
+  suretyName      String?
+  suretyPhone     String?
+  nomineeName     String?
+  nomineePhone    String?
+  nomineeRelation String?
+  photo           String?  // Base64 or image URL
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  chits           Chit[]
+  transactions    MemberTransaction[]
+}
+
+model Chit {
+  id                String      @id @default(cuid())
+  memberId          String
+  member            ChitMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  chitAmount        Float
+  durationMonths    Int
+  monthlyInstallment Float
+  startDate         DateTime
+  status            String      @default("ACTIVE") // ACTIVE, COMPLETED
+  monthsCompleted   Int         @default(0)
+  totalPaid         Float       @default(0)
+  previousDue       Float       @default(0)
+  completedDate     DateTime?
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  payments          Payment[]
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  chitId        String
+  chit          Chit     @relation(fields: [chitId], references: [id], onDelete: Cascade)
+  amount        Float
+  paymentDate   DateTime @default(now())
+  paymentMode   String   @default("CASH") // CASH, UPI, BANK
+  monthNumber   Int
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model MemberTransaction {
+  id          String     @id @default(cuid())
+  memberId    String
+  member      ChitMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  type        String     // "TAKEN" (తీసుకున్నారు / Received by member), "GIVEN" (ఇచ్చారు / చెల్లించారు / Paid by member)
+  amount      Float
+  date        DateTime   @default(now())
+  description String     // Notes / Reason
+  paymentMode String     @default("CASH") // CASH, UPI, BANK
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model BroadcastLog {
+  id             String   @id @default(cuid())
+  chitScheme     String   // e.g. "1 Lakh Chit"
+  chitAmount     Float
+  recipientCount Int
+  recipients     String   // JSON string of { name, phone, village }[]
+  message        String
+  status         String   @default("SENT")
+  channel        String   @default("ONE_CLICK_BROADCAST")
+  createdAt      DateTime @default(now())
+}
+
+model FinanceCustomer {
+  id          String         @id @default(cuid())
+  name        String
+  surname     String?        @default("")
+  phone       String
+  village     String?        @default("")
+  memberId    String?        // Optional link if they are also an existing ChitMember
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  entries     FinanceEntry[]
+}
+
+model FinanceEntry {
+  id           String          @id @default(cuid())
+  customerId   String
+  customer     FinanceCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type         String          // "GAVE" (You Gave / అప్పు / Cash Out / Debit), "GOT" (You Got / వసూలు / Cash In / Credit)
+  amount       Float
+  date         DateTime        @default(now())
+  description  String?
+  paymentMode  String          @default("CASH") // CASH, UPI, BANK, CHEQUE
+  interestRate Float?          // e.g. 2% (2 Rs per 100 per month)
+  billImage    String?         // Optional receipt/bill image
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model ChitMonthlyAuction {
+  id            String    @id @default(cuid())
+  chitSchemeKey String    // e.g. "100000_2026-10-26"
+  chitAmount    Float
+  startDate     DateTime
+  monthNumber   Int       // 1, 2, ..., up to durationMonths
+  monthDate     DateTime? // Expected date of that month
+  takerName     String?   // Person taking the monthly chit (చీటీ ఎత్తుకున్నవారు)
+  takerMemberId String?   // Optional link to ChitMember
+  bidAmount     Float?    // Auction discount / bid (పాట / డిస్కౌంట్)
+  payoutAmount  Float?    // Amount paid to the person taking the chit
+  paidDate      DateTime? // Date when payout was given
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([chitSchemeKey, monthNumber])
+}
+
